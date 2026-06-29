@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assobiadores Mundiais</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #161f30;
+            --accent-color: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #243249;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+        }
+
+        .title-group {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+            word-wrap: break-word;
+        }
+
+        /* Botão Configurações */
+        .btn-config {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            z-index: 10;
+        }
+
+        .btn-config:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Container de Patentes */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .category-title {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .patent-item {
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .patent-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .members-list {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+            padding-left: 5px;
+            min-height: 18px;
+        }
+
+        /* Modal / Painel de Login e Edição */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: none; border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem; cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
+            border: none; border-radius: 6px;
+            color: #000; font-weight: bold; cursor: pointer;
+        }
+
+        /* Área de Edição (Escondida até logar) */
+        #edit-panel {
+            display: none;
+        }
+
+        .edit-row {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .edit-row label {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .edit-row input {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding-top: 50px;
+            }
+            .btn-config {
+                position: relative;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="btn-config" onclick="openModal()">⚙ Configurações</button>
+        <div class="title-group">
+            ꧁ ☬ αʂʂσႦιαԃσɾҽʂ 𝖒𝖚𝖓𝖉𝖎𝖆𝖎𝖘 🐦 𝖝 🦜 𝖝 🕊 𝖝 👑 𝖝 🌐 𝖝 🌎 ☬ ꧂
+        </div>
+    </header>
+
+    <div class="container" id="patentes-container">
+        <p style="text-align: center; grid-column: 1/-1; color: var(--text-muted);">Conectando ao banco de dados...</p>
+    </div>
+
+    <div class="modal" id="config-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            
+            <div id="login-form">
+                <h3 style="margin-bottom: 15px;">Acesso Restrito</h3>
+                <div class="form-group">
+                    <label>E-mail do Dono</label>
+                    <input type="email" id="email-input" placeholder="seu-email@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="password-input" placeholder="••••••••">
+                </div>
+                <button class="btn-submit" onclick="handleLogin()">Entrar</button>
+            </div>
+
+            <div id="edit-panel">
+                <h3 style="margin-bottom: 5px;">Painel de Controle</h3>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">Qualquer letra digitada aqui atualiza todos os usuários imediatamente.</p>
+                <div id="edit-fields-container">
+                    </div>
+                <button class="btn-submit" style="background: #ef4444; color: white; margin-top: 10px;" onclick="handleLogout()">Sair do Painel</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Sua configuração do Firebase SDK enviada
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfG1gFI4SoEdttmhwORZt92_9bgqJcsgw",
+            authDomain: "call-9cc3b.firebaseapp.com",
+            databaseURL: "https://call-9cc3b-default-rtdb.firebaseio.com",
+            projectId: "call-9cc3b",
+            storageBucket: "call-9cc3b.firebasestorage.app",
+            messagingSenderId: "919168566449",
+            appId: "1:919168566449:web:b57c4c4020bf3cace30e90",
+            measurementId: "G-GYBCF1LG64"
+        };
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Estrutura Fixa de Patentes
+        const patentesData = {
+            "ᏟᎡᏆᎪᏟ̧Ꭺ̃ϴ": [
+                { id: "p1", name: "คઽઽ૦ცɿคძ૦Ր ℭℜℑ𝔄𝔇𝔒ℜ" }
+            ],
+            "ᏆᎷᏢᎬРАᎠϴᎡᎬՏ": [
+                { id: "p2", name: "𝕀𝕞𝕡erad𝕠𝕣 𝕊𝕦𝕡𝕣𝕖𝕞𝕠" },
+                { id: "p3", name: "𝕀𝕞𝕡erad𝕠𝕣 𝕕𝕠𝕤 𝕀𝕞𝕡erad𝕠res" },
+                { id: "p4", name: "𝕀𝕞𝕡erad𝕠𝕣 𝔸𝕤𝕤𝕠𝕓𝕚𝕒𝕕𝕠𝕣" },
+                { id: "p5", name: "𝕀𝕞𝕡erad𝕠𝕣 ℙ𝕝𝕦𝕤" },
+                { id: "p6", name: "𝕀𝕞𝕡erad𝕠𝕣" }
+            ],
+            "ᏟϴΝՏᎬᏞᎻϴ": [
+                { id: "p7", name: "ᑭᖇᗴՏIᗪᗴᑎTᗴ ᗪO ᑕOᑎՏᗴᒪᕼO" },
+                { id: "p8", name: "ᑕOᑎՏᗴᒪᕼᗴIᖇO ᗰᗴՏTᖇᗴ" },
+                { id: "p9", name: "ᑕOᑎՏᗴᒪᕼᗴIᖇO ᑭᒪᑌՏ" },
+                { id: "p10", name: "ᑕOᑎՏᗴᒪᕼᗴIᖇO" }
+            ],
+            "ᎷϴΝᎪᎡᏟᎪՏ": [
+                { id: "p11", name: "爪ㄖ几卂尺匚卂 卂乃丂ㄖㄥㄩㄒㄖ" },
+                { id: "p12", name: "爪ㄖ几卂尺匚卂 卂丂丂ㄖ乃丨卂ᗪㄖ尺" },
+                { id: "p13", name: "爪ㄖ几卂尺匚卂 爪乇丂ㄒ🇷🇪" },
+                { id: "p14", name: "爪ㄖ几卂尺匚卂 ᐯ︎丨🇵" },
+                { id: "p15", name: "爪ㄖ几卂尺匚卂" }
+            ],
+            "ΝϴᏴᎡᎬᏃᎪ": [
+                { id: "p16", name: "მააიႦIძიჁ ႶიႦჁჹ" },
+                { id: "p17", name: "მააიႦiძიჁ ოႮსႵiოiსiიႶმ́Ⴡiი" },
+                { id: "p18", name: "მააიႦiძიჁ ჁiႺი" }
+            ],
+            "ᎪՏՏϴᏴᏆᎪᎠϴᎡᎬՏ": [
+                { id: "p19", name: "ᥲss᥆ᑲіᥲძ᥆r gᥙᥲrძіᥲ̃᥆" },
+                { id: "p20", name: "ᥲss᥆ᑲіᥲძ᥆r ⍴rᥱ́-gᥙᥲrძіᥲ̃᥆" },
+                { id: "p21", name: "ᥲss᥆ᑲіᥲძ᥆r mᥱs𝗍rᥱ ᥲ⍴rᥱᥒძіz" },
+                { id: "p22", name: "ᥲss᥆ᑲіᥲძ᥆r mᥱs𝗍rᥱ" },
+                { id: "p23", name: "ᥲss᥆ᑲіᥲძ᥆r ⍴rᥱ́-mᥱs𝗍rᥱ" },
+                { id: "p24", name: "ᥲss᥆ᑲіᥲძ᥆r ᥲ⍴rᥱᥒძіz" },
+                { id: "p25", name: "ᥲss᥆ᑲіᥲძ᥆r іᥒіᥴіᥲᥒ𝗍ᥱ (іᥒіᥴіᥲᥣ)" }
+            ]
+        };
+
+        let membrosData = {};
+
+        // Escuta mudanças do Firebase em tempo real
+        const membrosRef = ref(db, 'membrosPatentes');
+        onValue(membrosRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                membrosData = data;
+            } else {
+                // Se o banco estiver vazio, cria os campos padrão
+                for (let cat in patentesData) {
+                    patentesData[cat].forEach(p => { membrosData[p.id] = "Nenhum membro"; });
+                }
+                set(membrosRef, membrosData);
+            }
+            renderSite();
+            // Se o administrador estiver com o painel aberto, atualiza os valores dos inputs dele também
+            if(document.getElementById('edit-panel').style.display === 'block') {
+                renderEditFields();
+            }
+        });
+
+        // Função para Renderizar a Tela Principal
+        function renderSite() {
+            const container = document.getElementById('patentes-container');
+            container.innerHTML = '';
+
+            for (let categoria in patentesData) {
+                let card = document.createElement('div');
+                card.className = 'category-card';
+                
+                let title = document.createElement('h2');
+                title.className = 'category-title';
+                title.innerText = categoria;
+                card.appendChild(title);
+
+                patentesData[categoria].forEach(patente => {
+                    let item = document.createElement('div');
+                    item.className = 'patent-item';
+                    
+                    let pName = document.createElement('span');
+                    pName.className = 'patent-name';
+                    pName.innerText = patente.name;
+                    
+                    let mList = document.createElement('div');
+                    mList.className = 'members-list';
+                    mList.innerText = membrosData[patente.id] || "Nenhum membro";
+
+                    item.appendChild(pName);
+                    item.appendChild(mList);
+                    card.appendChild(item);
+                });
+
+                container.appendChild(card);
+            }
+        }
+
+        // Função para Gerar os Inputs no Painel do Dono
+        function renderEditFields() {
+            const container = document.getElementById('edit-fields-container');
+            // Evita recriar elementos focados enquanto digita se o container já estiver preenchido
+            if (container.children.length > 0) {
+                for (let patenteId in membrosData) {
+                    let inputEl = document.getElementById(`input-${patenteId}`);
+                    if (inputEl && document.activeElement !== inputEl) {
+                        inputEl.value = membrosData[patenteId] === "Nenhum membro" ? "" : membrosData[patenteId];
+                    }
+                }
+                return;
+            }
+
+            container.innerHTML = '';
+            for (let categoria in patentesData) {
+                let catHeader = document.createElement('h4');
+                catHeader.style.margin = "15px 0 10px 0";
+                catHeader.style.color = "#fff";
+                catHeader.innerText = categoria;
+                container.appendChild(catHeader);
+
+                patentesData[categoria].forEach(patente => {
+                    let row = document.createElement('div');
+                    row.className = 'edit-row';
+
+                    let label = document.createElement('label');
+                    label.innerText = patente.name;
+
+                    let input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `input-${patente.id}`;
+                    input.value = membrosData[patente.id] === "Nenhum membro" ? "" : membrosData[patente.id];
+                    input.placeholder = "Ex: Lucas, Arthur, Lucca";
+                    
+                    // Envia para o Firebase conforme digita
+                    input.oninput = function(e) {
+                        const valor = e.target.value.trim() === "" ? "Nenhum membro" : e.target.value;
+                        set(ref(db, `membrosPatentes/${patente.id}`), valor);
+                    };
+
+                    row.appendChild(label);
+                    row.appendChild(input);
+                    container.appendChild(row);
+                });
+            }
+        }
+
+        // Tornando funções de clique acessíveis fora do escopo do tipo módulo
+        window.openModal = function() {
+            document.getElementById('config-modal').style.display = 'flex';
+        }
+
+        window.closeModal = function() {
+            document.getElementById('config-modal').style.display = 'none';
+            document.getElementById('email-input').value = '';
+            document.getElementById('password-input').value = '';
+        }
+
+        window.handleLogin = function() {
+            const email = document.getElementById('email-input').value;
+            const pass = document.getElementById('password-input').value;
+
+            if (email === "lucaslcloux12@gmail.com" && pass === "01201201") {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('edit-panel').style.display = 'block';
+                renderEditFields();
+            } else {
+                alert("Acesso negado! Credenciais incorretas.");
+            }
+        }
+
+        window.handleLogout = function() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('edit-panel').style.display = 'none';
+            document.getElementById('edit-fields-container').innerHTML = ''; // Limpa os elementos criados
+            window.closeModal();
+        }
+    </script>
+</body>
+</html>
+
