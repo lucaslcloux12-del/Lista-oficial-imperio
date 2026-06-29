@@ -34,10 +34,10 @@
 
         header {
             text-align: center;
+            margin-top: 20px;
             margin-bottom: 40px;
             max-width: 800px;
             width: 100%;
-            position: relative;
         }
 
         .title-group {
@@ -45,27 +45,27 @@
             margin-bottom: 10px;
             text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
             word-wrap: break-word;
+            padding: 0 20px;
         }
 
-        /* Botão Configurações */
+        /* Botão Configurações - SUPER DIREITO E BEM DISCRETO */
         .btn-config {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 6px;
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: rgba(156, 163, 175, 0.3); /* Bem transparente e misturado ao fundo */
+            font-size: 1.4rem;
             cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-            z-index: 10;
+            transition: color 0.3s ease, transform 0.3s ease;
+            z-index: 9999;
+            padding: 5px;
         }
 
         .btn-config:hover {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+            color: var(--accent-color); /* Acende levemente em verde ao passar o mouse */
+            transform: rotate(45deg);
         }
 
         /* Container de Patentes na Tela Principal */
@@ -126,7 +126,7 @@
             background: rgba(0,0,0,0.8);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 10000;
             padding: 20px;
         }
 
@@ -264,23 +264,13 @@
             background: var(--accent-color);
             color: #000;
         }
-
-        @media (max-width: 600px) {
-            header {
-                padding-top: 50px;
-            }
-            .btn-config {
-                position: relative;
-                margin-bottom: 20px;
-                display: inline-block;
-            }
-        }
     </style>
 </head>
 <body>
 
+    <button class="btn-config" onclick="openModal()" title="Configurações">⚙</button>
+
     <header>
-        <button class="btn-config" onclick="openModal()">⚙ Configurações</button>
         <div class="title-group">
             ꧁ ☬ αʂʂσႦιαԃσɾҽʂ 𝖒𝖚𝖓𝖉𝖎𝖆𝖎𝖘 🐦 𝖝 🦜 𝖝 🕊 𝖝 👑 𝖝 🌐 𝖝 🌎 ☬ ꧂
         </div>
@@ -377,14 +367,12 @@
 
         let membrosData = {};
 
-        // Escuta o banco Firebase
         const membrosRef = ref(db, 'membrosPatentesListas');
         onValue(membrosRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 membrosData = data;
             } else {
-                // Inicializa se o banco estiver vazio com arrays vazios
                 for (let cat in patentesData) {
                     patentesData[cat].forEach(p => { membrosData[p.id] = []; });
                 }
@@ -397,7 +385,6 @@
             }
         });
 
-        // Exibe os membros na tela inicial (junta os nomes com vírgulas apenas visualmente)
         function renderSite() {
             const container = document.getElementById('patentes-container');
             container.innerHTML = '';
@@ -434,7 +421,6 @@
             }
         }
 
-        // Gera a interface de listas no Painel do Administrador
         function renderEditFields() {
             const container = document.getElementById('edit-fields-container');
             container.innerHTML = '';
@@ -454,7 +440,6 @@
                     label.innerText = patente.name;
                     row.appendChild(label);
 
-                    // Criar a Lista Visual de Nomes Atuais
                     let ul = document.createElement('ul');
                     ul.className = 'member-list-edit';
                     
@@ -471,7 +456,6 @@
                         deleteBtn.className = 'btn-delete-member';
                         deleteBtn.innerHTML = '🗑️';
                         deleteBtn.onclick = function() {
-                            // Remove o membro pelo index e atualiza o Firebase
                             let novaLista = [...listaMembros];
                             novaLista.splice(index, 1);
                             set(ref(db, `membrosPatentesListas/${patente.id}`), novaLista);
@@ -483,7 +467,6 @@
                     });
                     row.appendChild(ul);
 
-                    // Criar Campo para Adicionar Novo Membro
                     let addContainer = document.createElement('div');
                     addContainer.className = 'add-member-container';
 
@@ -492,7 +475,6 @@
                     input.placeholder = 'Nome do novo membro...';
                     input.id = `new-name-${patente.id}`;
                     
-                    // Permite adicionar apertando a tecla Enter
                     input.onkeypress = function(e) {
                         if (e.key === 'Enter') {
                             adicionarNovoMembro(patente.id, input);
@@ -515,21 +497,18 @@
             }
         }
 
-        // Função auxiliar para injetar novos nomes na lista do Firebase
         function adicionarNovoMembro(patenteId, inputElement) {
             const nome = inputElement.value.trim();
             if (nome === "") return;
 
             let listaAtual = membrosData[patenteId] || [];
-            // Adiciona o novo nome à lista
             listaAtual.push(nome);
             
             set(ref(db, `membrosPatentesListas/${patenteId}`), listaAtual).then(() => {
-                inputElement.value = ""; // Limpa o campo de texto
+                inputElement.value = "";
             });
         }
 
-        // Escopo global para os botões do HTML tradicional
         window.openModal = function() {
             document.getElementById('config-modal').style.display = 'flex';
         }
