@@ -12,6 +12,7 @@
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
             --border-color: #243249;
+            --danger-color: #ef4444;
         }
 
         * {
@@ -67,7 +68,7 @@
             box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
         }
 
-        /* Container de Patentes */
+        /* Container de Patentes na Tela Principal */
         .container {
             width: 100%;
             max-width: 1000px;
@@ -176,31 +177,92 @@
             color: #000; font-weight: bold; cursor: pointer;
         }
 
-        /* Área de Edição (Escondida até logar) */
+        /* Área de Edição em Formato de Lista */
         #edit-panel {
             display: none;
         }
 
         .edit-row {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
         }
 
         .edit-row label {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--accent-color);
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
 
-        .edit-row input {
-            width: 100%;
-            padding: 8px;
+        .member-list-edit {
+            list-style: none;
+            margin-bottom: 8px;
+        }
+
+        .member-item-edit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .member-item-edit span {
+            flex-grow: 1;
+            background: rgba(0,0,0,0.2);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .btn-delete-member {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: var(--danger-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .btn-delete-member:hover {
+            background: var(--danger-color);
+            color: #fff;
+        }
+
+        .add-member-container {
+            display: flex;
+            gap: 6px;
+        }
+
+        .add-member-container input {
+            flex-grow: 1;
+            padding: 6px 10px;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: var(--text-main);
+            font-size: 0.85rem;
+        }
+
+        .btn-add-member {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-add-member:hover {
+            background: var(--accent-color);
+            color: #000;
         }
 
         @media (max-width: 600px) {
@@ -247,10 +309,10 @@
 
             <div id="edit-panel">
                 <h3 style="margin-bottom: 5px;">Painel de Controle</h3>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">Qualquer letra digitada aqui atualiza todos os usuários imediatamente.</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">Adicione ou remova membros das listas abaixo em tempo real.</p>
                 <div id="edit-fields-container">
                     </div>
-                <button class="btn-submit" style="background: #ef4444; color: white; margin-top: 10px;" onclick="handleLogout()">Sair do Painel</button>
+                <button class="btn-submit" style="background: #ef4444; color: white; margin-top: 20px;" onclick="handleLogout()">Sair do Painel</button>
             </div>
         </div>
     </div>
@@ -259,7 +321,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Sua configuração do Firebase SDK enviada
         const firebaseConfig = {
             apiKey: "AIzaSyAfG1gFI4SoEdttmhwORZt92_9bgqJcsgw",
             authDomain: "call-9cc3b.firebaseapp.com",
@@ -271,11 +332,9 @@
             measurementId: "G-GYBCF1LG64"
         };
 
-        // Inicializa o Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Estrutura Fixa de Patentes
         const patentesData = {
             "ᏟᎡᏆᎪᏟ̧Ꭺ̃ϴ": [
                 { id: "p1", name: "คઽઽ૦ცɿคძ૦Ր ℭℜℑ𝔄𝔇𝔒ℜ" }
@@ -318,27 +377,27 @@
 
         let membrosData = {};
 
-        // Escuta mudanças do Firebase em tempo real
-        const membrosRef = ref(db, 'membrosPatentes');
+        // Escuta o banco Firebase
+        const membrosRef = ref(db, 'membrosPatentesListas');
         onValue(membrosRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 membrosData = data;
             } else {
-                // Se o banco estiver vazio, cria os campos padrão
+                // Inicializa se o banco estiver vazio com arrays vazios
                 for (let cat in patentesData) {
-                    patentesData[cat].forEach(p => { membrosData[p.id] = "Nenhum membro"; });
+                    patentesData[cat].forEach(p => { membrosData[p.id] = []; });
                 }
                 set(membrosRef, membrosData);
             }
             renderSite();
-            // Se o administrador estiver com o painel aberto, atualiza os valores dos inputs dele também
+            
             if(document.getElementById('edit-panel').style.display === 'block') {
                 renderEditFields();
             }
         });
 
-        // Função para Renderizar a Tela Principal
+        // Exibe os membros na tela inicial (junta os nomes com vírgulas apenas visualmente)
         function renderSite() {
             const container = document.getElementById('patentes-container');
             container.innerHTML = '';
@@ -362,7 +421,9 @@
                     
                     let mList = document.createElement('div');
                     mList.className = 'members-list';
-                    mList.innerText = membrosData[patente.id] || "Nenhum membro";
+                    
+                    const listaMembros = membrosData[patente.id] || [];
+                    mList.innerText = listaMembros.length > 0 ? listaMembros.join(', ') : "Nenhum membro";
 
                     item.appendChild(pName);
                     item.appendChild(mList);
@@ -373,24 +434,14 @@
             }
         }
 
-        // Função para Gerar os Inputs no Painel do Dono
+        // Gera a interface de listas no Painel do Administrador
         function renderEditFields() {
             const container = document.getElementById('edit-fields-container');
-            // Evita recriar elementos focados enquanto digita se o container já estiver preenchido
-            if (container.children.length > 0) {
-                for (let patenteId in membrosData) {
-                    let inputEl = document.getElementById(`input-${patenteId}`);
-                    if (inputEl && document.activeElement !== inputEl) {
-                        inputEl.value = membrosData[patenteId] === "Nenhum membro" ? "" : membrosData[patenteId];
-                    }
-                }
-                return;
-            }
-
             container.innerHTML = '';
+
             for (let categoria in patentesData) {
                 let catHeader = document.createElement('h4');
-                catHeader.style.margin = "15px 0 10px 0";
+                catHeader.style.margin = "20px 0 10px 0";
                 catHeader.style.color = "#fff";
                 catHeader.innerText = categoria;
                 container.appendChild(catHeader);
@@ -401,27 +452,84 @@
 
                     let label = document.createElement('label');
                     label.innerText = patente.name;
+                    row.appendChild(label);
+
+                    // Criar a Lista Visual de Nomes Atuais
+                    let ul = document.createElement('ul');
+                    ul.className = 'member-list-edit';
+                    
+                    const listaMembros = membrosData[patente.id] || [];
+                    
+                    listaMembros.forEach((membro, index) => {
+                        let li = document.createElement('li');
+                        li.className = 'member-item-edit';
+                        
+                        let nameSpan = document.createElement('span');
+                        nameSpan.innerText = membro;
+                        
+                        let deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'btn-delete-member';
+                        deleteBtn.innerHTML = '🗑️';
+                        deleteBtn.onclick = function() {
+                            // Remove o membro pelo index e atualiza o Firebase
+                            let novaLista = [...listaMembros];
+                            novaLista.splice(index, 1);
+                            set(ref(db, `membrosPatentesListas/${patente.id}`), novaLista);
+                        };
+
+                        li.appendChild(nameSpan);
+                        li.appendChild(deleteBtn);
+                        ul.appendChild(li);
+                    });
+                    row.appendChild(ul);
+
+                    // Criar Campo para Adicionar Novo Membro
+                    let addContainer = document.createElement('div');
+                    addContainer.className = 'add-member-container';
 
                     let input = document.createElement('input');
                     input.type = 'text';
-                    input.id = `input-${patente.id}`;
-                    input.value = membrosData[patente.id] === "Nenhum membro" ? "" : membrosData[patente.id];
-                    input.placeholder = "Ex: Lucas, Arthur, Lucca";
+                    input.placeholder = 'Nome do novo membro...';
+                    input.id = `new-name-${patente.id}`;
                     
-                    // Envia para o Firebase conforme digita
-                    input.oninput = function(e) {
-                        const valor = e.target.value.trim() === "" ? "Nenhum membro" : e.target.value;
-                        set(ref(db, `membrosPatentes/${patente.id}`), valor);
+                    // Permite adicionar apertando a tecla Enter
+                    input.onkeypress = function(e) {
+                        if (e.key === 'Enter') {
+                            adicionarNovoMembro(patente.id, input);
+                        }
                     };
 
-                    row.appendChild(label);
-                    row.appendChild(input);
+                    let addBtn = document.createElement('button');
+                    addBtn.className = 'btn-add-member';
+                    addBtn.innerText = '＋';
+                    addBtn.onclick = function() {
+                        adicionarNovoMembro(patente.id, input);
+                    };
+
+                    addContainer.appendChild(input);
+                    addContainer.appendChild(addBtn);
+                    row.appendChild(addContainer);
+
                     container.appendChild(row);
                 });
             }
         }
 
-        // Tornando funções de clique acessíveis fora do escopo do tipo módulo
+        // Função auxiliar para injetar novos nomes na lista do Firebase
+        function adicionarNovoMembro(patenteId, inputElement) {
+            const nome = inputElement.value.trim();
+            if (nome === "") return;
+
+            let listaAtual = membrosData[patenteId] || [];
+            // Adiciona o novo nome à lista
+            listaAtual.push(nome);
+            
+            set(ref(db, `membrosPatentesListas/${patenteId}`), listaAtual).then(() => {
+                inputElement.value = ""; // Limpa o campo de texto
+            });
+        }
+
+        // Escopo global para os botões do HTML tradicional
         window.openModal = function() {
             document.getElementById('config-modal').style.display = 'flex';
         }
@@ -448,10 +556,9 @@
         window.handleLogout = function() {
             document.getElementById('login-form').style.display = 'block';
             document.getElementById('edit-panel').style.display = 'none';
-            document.getElementById('edit-fields-container').innerHTML = ''; // Limpa os elementos criados
+            document.getElementById('edit-fields-container').innerHTML = '';
             window.closeModal();
         }
     </script>
 </body>
 </html>
-
